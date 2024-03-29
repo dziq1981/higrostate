@@ -24,121 +24,189 @@ def setRelay(state : bool):
         relayState=0
         displayTimer = float(DISPLAY_TIMER_DEFAULT)*10
 
-def regularUpButtonPressReaction():
-    global buttonTimer
-    buttonTimer=ticks_ms()
-    
+   
 def specialUpOnThresholdButtonPressReaction():
-    global settings, oled, specialActionTimer
+    global settings, oled, actionTimer
     print("special up")
     settings.onThreshold+=1
     oled.fill(0)
     oled.text("Prog wlaczenia:",1,5)
     oled.text("%3.1f" %settings.onThreshold,1,15)
     oled.show()
-    specialActionTimer = 5.0
+    actionTimer = ACTION_TIMER_DEFAULT
 
 def specialDownOnThresholdButtonPressReaction():
-    global settings, oled, specialActionTimer
+    global settings, oled, actionTimer
     print("special down")
     settings.onThreshold-=1
     oled.fill(0)
     oled.text("Prog wlaczenia:",1,5)
     oled.text("%3.1f" %settings.onThreshold,1,15)
     oled.show()
-    specialActionTimer = 5.0
-
-def doNothing():
-    pass
+    actionTimer = ACTION_TIMER_DEFAULT
 
 def regularUpButtonReleaseReaction():
-    global buttonTimer, oled, displayTimer, specialActionInterval, specialActionTimer, buttonRed, buttonBlue
-            
+    global oled, displayTimer            
     oled.fill(0)
     oled.text("Prog wlaczenia:",1,5)
     oled.text("%3.1f" %settings.onThreshold,1,15)
     oled.show()
-    #sleep(2)
+    sleep(2)
     oled.fill(0)
     displayTimer = DISPLAY_TIMER_DEFAULT
 
-    if ticks_diff(ticks_ms(),buttonTimer)>=1200:
-        print("else")
-        buttonRed.when_activated = specialUpOnThresholdButtonPressReaction
-        buttonBlue.when_activated = specialDownOnThresholdButtonPressReaction
-        buttonRed.when_deactivated = doNothing
-        buttonBlue.when_deactivated = doNothing
-        specialActionTimer=5.0
-        print("elser")
-        while specialActionTimer>=0:
-            sleep(specialActionInterval)
-            specialActionTimer-=specialActionInterval
-            pass
-        print("more elser")
-        buttonRed.when_activated = regularUpButtonPressReaction
-        buttonBlue.when_activated = doNothing
-        buttonRed.when_deactivated = regularUpButtonReleaseReaction
-        buttonBlue.when_deactivated = doNothing
+def specialUpOffThresholdButtonPressReaction():
+    global settings, oled, actionTimer
+    print("special up")
+    settings.offThreshold+=1
+    oled.fill(0)
+    oled.text("Prog wylaczenia:",1,5)
+    oled.text("%3.1f" %settings.offThreshold,1,15)
+    oled.show()
+    actionTimer = ACTION_TIMER_DEFAULT
+
+def specialDownOffThresholdButtonPressReaction():
+    global settings, oled, actionTimer
+    print("special down")
+    settings.offThreshold-=1
+    oled.fill(0)
+    oled.text("Prog wylaczenia:",1,5)
+    oled.text("%3.1f" %settings.offThreshold,1,15)
+    oled.show()
+    actionTimer = ACTION_TIMER_DEFAULT
+
+def regularDownButtonReleaseReaction():
+    global oled, displayTimer            
+    oled.fill(0)
+    oled.text("Prog wylaczenia:",1,5)
+    oled.text("%3.1f" %settings.offThreshold,1,15)
+    oled.show()
+    sleep(2)
+    oled.fill(0)
+    displayTimer = DISPLAY_TIMER_DEFAULT
+
 #i/o devices setup
 sensor = DHT22(Pin(SENSOR_PIN_NUMBER))
 buttonRed = picozero.Button(BUTTON_RED_PIN_NUMBER)
 buttonBlue = picozero.Button(BUTTON_BLUE_PIN_NUMBER)
 buttonTimer = 0
-specialActionTimer = 5.0
+actionTimer = 3.0
 specialActionInterval=0.1
-buttonRed.when_activated = regularUpButtonPressReaction
-buttonRed.when_deactivated = regularUpButtonReleaseReaction
 
 oled = SSD1306_I2C(OLED_WIDTH,OLED_HEIGHT,I2C(I2C_ID, scl=Pin(I2C_SCL_PIN_NUMBER), sda=Pin(I2C_SDA_PIN_NUMBER)))
 #read or setup settings
-settings = Settings(oled)
-#setting up a relay
-relay = Pin(RELAY_PIN_NUMBER, Pin.OUT, Pin.PULL_UP)
-relay.high()
-relayState=1
-#display initialization message with a countdown
-displayTimer=2
-interval = 0.1
-while displayTimer>=0: 
-    oled.text("Uruchamiam",5,0)
-    oled.text("sensor",5,10)
-    oled.text("Zaczekaj %1.1fs" %displayTimer,5,20)
-    oled.show()    
-    oled.fill(0)
-    displayTimer-=interval
-    sleep(interval)
-
-displayTimer = 30
-interval = 2.0
-#main loop
 try:
-    while True:
-        sensor.measure()    
-        hum = sensor.humidity()
-        if settings.getWorkType()==WorkType.humidifier:
-            if hum<settings.onThreshold:
-                setRelay(False)                
-            if hum>settings.offThreshold:
-                setRelay(True)                
-        else:
-            if hum>settings.onThreshold:
-                setRelay(False)                
-            if hum<settings.offThreshold:
-                setRelay(True)                
-        if displayTimer>0.0: #displays humidity information for some time and at random locations to reduce oled screen wear
-            buff : str = 'Rh= %3.1f %%' %hum        
-            graphLen =  len(buff)*8+1
-            x = randrange(0,120-graphLen,1)
-            y = randrange(0,24,1)
-            oled.ellipse(x+graphLen+4,y+4,3,3,1,relayState==0)
-            oled.text(buff,x,y)            
-        if displayTimer>-interval: #updates the screen and makes sure it stays black after the time interval had passed
-            oled.show()
-            oled.fill(0)        
-            displayTimer-=interval                  
+    settings = Settings(oled)
+    #setting up a relay
+    relay = Pin(RELAY_PIN_NUMBER, Pin.OUT, Pin.PULL_UP)
+    relay.high()
+    relayState=1
+    #display initialization message with a countdown
+    displayTimer=3
+    interval = 0.1
+    while displayTimer>=0: 
+        oled.text("Uruchamiam",5,0)
+        oled.text("sensor",5,10)
+        oled.text("Zaczekaj %1.1fs" %displayTimer,5,20)
+        oled.show()    
+        oled.fill(0)
+        displayTimer-=interval
         sleep(interval)
+
+    displayTimer = DISPLAY_TIMER_DEFAULT
+    interval = 2
+    divider :int = 20
+    counter :int = 0
+    #main loop
+
+    while True:
+        if counter==0:
+            sensor.measure()    
+            hum = sensor.humidity()
+            counter = divider
+            if settings.getWorkType()==WorkType.humidifier:
+                if hum<settings.onThreshold:
+                    setRelay(False)                
+                if hum>settings.offThreshold:
+                    setRelay(True)                
+            else:
+                if hum>settings.onThreshold:
+                    setRelay(False)                
+                if hum<settings.offThreshold:
+                    setRelay(True)                
+            if displayTimer>0.0: #displays humidity information for some time and at random locations to reduce oled screen wear
+                buff : str = 'Rh= %3.1f %%' %hum        
+                graphLen =  len(buff)*8+1
+                x = randrange(0,120-graphLen,1)
+                y = randrange(0,24,1)
+                oled.ellipse(x+graphLen+4,y+4,3,3,1,relayState==0)
+                oled.text(buff,x,y)            
+            if displayTimer>-interval: #updates the screen and makes sure it stays black after the time interval had passed
+                oled.show()
+                oled.fill(0)        
+                displayTimer-=interval  
+        if buttonRed.is_active and buttonBlue.is_inactive:            
+            timeStart = ticks_ms()
+            while buttonRed.is_active:
+                pass 
+            if ticks_diff(ticks_ms(),timeStart)<1000:                
+                regularUpButtonReleaseReaction()
+            else:                
+                singleClick = True
+                regularUpButtonReleaseReaction()
+                actionTimer = ACTION_TIMER_DEFAULT               
+                while actionTimer>0:     
+                    if buttonRed.is_active and singleClick and buttonBlue.is_inactive:
+                        specialUpOnThresholdButtonPressReaction()
+                        singleClick = False                        
+                    if buttonBlue.is_active and singleClick and buttonRed.is_inactive: 
+                        specialDownOnThresholdButtonPressReaction()
+                        singleClick = False                        
+                    if buttonRed.is_inactive and buttonBlue.is_inactive:
+                        singleClick = True
+                    sleep(specialActionInterval)
+                    actionTimer-=specialActionInterval
+                oled.fill(0)
+                oled.show()
+                settings.saveSettings()
+            displayTimer = DISPLAY_TIMER_DEFAULT
+        
+        if buttonRed.is_inactive and buttonBlue.is_active:            
+            timeStart = ticks_ms()
+            print ("Blue button pressed")
+            while buttonBlue.is_active:                
+                pass 
+            if ticks_diff(ticks_ms(),timeStart)<1000:                
+                print ("Blue button pressed SHORT")
+                regularDownButtonReleaseReaction()
+            else:                
+                print ("Blue button pressed LOOONG")
+                singleClick = True
+                actionTimer = ACTION_TIMER_DEFAULT
+                regularDownButtonReleaseReaction()               
+                while actionTimer>0:     
+                    if buttonRed.is_inactive and singleClick and buttonBlue.is_active:
+                        print ("Blue button down off")
+                        specialDownOffThresholdButtonPressReaction()
+                        singleClick = False                        
+                    if buttonBlue.is_inactive and singleClick and buttonRed.is_active: 
+                        print ("Blue button up off")
+                        specialUpOffThresholdButtonPressReaction()
+                        singleClick = False                        
+                    if buttonRed.is_inactive and buttonBlue.is_inactive:
+                        singleClick = True
+                    sleep(specialActionInterval)
+                    actionTimer-=specialActionInterval
+                oled.fill(0)
+                oled.show()                
+                settings.saveSettings()
+            displayTimer = DISPLAY_TIMER_DEFAULT
+
+        sleep(interval/divider)
+        counter-=1
 except Exception as e:
     print(e.args)
+    print(str(e.with_traceback(None)))    
     while True: #display a short blinking error message if something is wrong
         oled.text("Problem!",randrange(0,100,1),randrange(0,24))
         oled.show()
