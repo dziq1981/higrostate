@@ -121,21 +121,26 @@ try:
 
     while True:
         if counter==0:
-            sensor.measure()    
-            hum = sensor.humidity()
+            try:
+                sensor.measure()    
+                hum = sensor.humidity()
+            except:                
+                hum = READ_ERROR                            
             counter = divider
             if settings.getWorkType()==WorkType.humidifier:
-                if hum<settings.onThreshold:
-                    setRelay(False)                
-                if hum>settings.offThreshold:
-                    setRelay(True)                
+                if hum!=READ_ERROR:
+                    if hum<settings.onThreshold:
+                        setRelay(False)                
+                    if hum>settings.offThreshold:
+                        setRelay(True)                
             else:
-                if hum>settings.onThreshold:
-                    setRelay(False)                
-                if hum<settings.offThreshold:
-                    setRelay(True)                
+                if hum!=READ_ERROR:
+                    if hum>settings.onThreshold:
+                        setRelay(False)                
+                    if hum<settings.offThreshold:
+                        setRelay(True)                
             if displayTimer>0.0: #displays humidity information for some time and at random locations to reduce oled screen wear
-                buff : str = 'Rh= %3.1f %%' %hum        
+                buff : str = 'Rh= %3.1f %%' %hum if hum!=READ_ERROR else "BLAD CZUJNIKA"
                 graphLen =  len(buff)*8+1
                 x = randrange(0,120-graphLen,1)
                 y = randrange(0,24,1)
@@ -205,8 +210,7 @@ try:
         sleep(interval/divider)
         counter-=1
 except Exception as e:
-    print(e.args)
-    print(str(e.with_traceback(None)))    
+    print(e.args)   
     while True: #display a short blinking error message if something is wrong
         oled.text("Problem!",randrange(0,100,1),randrange(0,24))
         oled.show()
