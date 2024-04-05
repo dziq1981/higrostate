@@ -16,11 +16,11 @@ from random import randrange
 def setRelay(state : bool):
     global relay, relayState, displayTimer
     if state and relayState==0:
-        relay.high()
+        relay.off()
         relayState=1
         displayTimer = float(DISPLAY_TIMER_DEFAULT)*10
     elif not state and relayState==1:
-        relay.low()
+        relay.on()
         relayState=0
         displayTimer = float(DISPLAY_TIMER_DEFAULT)*10
 
@@ -97,10 +97,10 @@ oled = SSD1306_I2C(OLED_WIDTH,OLED_HEIGHT,I2C(I2C_ID, scl=Pin(I2C_SCL_PIN_NUMBER
 #read or setup settings
 try:
     settings = Settings(oled)
-    #setting up a relay
-    relay = Pin(RELAY_PIN_NUMBER, Pin.OUT, Pin.PULL_UP)
-    relay.high()
-    relayState=1
+    #setting up a relay & test
+    relay = picozero.DigitalOutputDevice(RELAY_PIN_NUMBER)
+    #relay.blink(on_time= 1, off_time=1,n=3, wait=True)
+    relayState=0
     #display initialization message with a countdown
     displayTimer=3
     interval = 0.1

@@ -7,7 +7,7 @@ BUTTON_BLUE_PIN_NUMBER = const(16)
 I2C_SCL_PIN_NUMBER = const(27)
 I2C_SDA_PIN_NUMBER = const(26)
 RELAY_PIN_NUMBER = const(19)
-I2C_ID = const(0)
+I2C_ID = const(1)
 #constants oled screen size
 OLED_WIDTH = const(128)
 OLED_HEIGHT = const(32)
