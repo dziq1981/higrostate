@@ -86,6 +86,7 @@ def regularDownButtonReleaseReaction():
     displayTimer = DISPLAY_TIMER_DEFAULT
 
 #i/o devices setup
+oled = SSD1306_I2C(OLED_WIDTH,OLED_HEIGHT,I2C(I2C_ID, scl=Pin(I2C_SCL_PIN_NUMBER), sda=Pin(I2C_SDA_PIN_NUMBER)))
 sensor = DHT22(Pin(SENSOR_PIN_NUMBER))
 buttonRed = picozero.Button(BUTTON_RED_PIN_NUMBER)
 buttonBlue = picozero.Button(BUTTON_BLUE_PIN_NUMBER)
@@ -93,13 +94,12 @@ buttonTimer = 0
 actionTimer = 3.0
 specialActionInterval=0.1
 
-oled = SSD1306_I2C(OLED_WIDTH,OLED_HEIGHT,I2C(I2C_ID, scl=Pin(I2C_SCL_PIN_NUMBER), sda=Pin(I2C_SDA_PIN_NUMBER)))
+
 #read or setup settings
 try:
     settings = Settings(oled)
     #setting up a relay & test
     relay = picozero.DigitalOutputDevice(RELAY_PIN_NUMBER)
-    #relay.blink(on_time= 1, off_time=1,n=3, wait=True)
     relayState=0
     #display initialization message with a countdown
     displayTimer=3
